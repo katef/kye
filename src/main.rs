@@ -16,10 +16,6 @@ struct Kye {
 	threads: Vec<Thread>,
 }
 
-fn hashbang(i :usize, line: &str) -> bool {
-	return i == 0 && line.starts_with("#")
-}
-
 impl fmt::Debug for Kye {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		let mut s = Vec::new();
@@ -72,6 +68,10 @@ impl Kye {
 
 		let mut height :usize = 0;
 		let mut width  :usize = 0;
+
+		fn hashbang(i :usize, line: &str) -> bool {
+			return i == 0 && line.starts_with("#")
+		}
 
 		let lines: Vec<_> = f.lines()
 			.enumerate()

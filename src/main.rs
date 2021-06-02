@@ -4,10 +4,34 @@ use std::fs::File;
 use std::fmt;
 use std::env;
 use std::time;
+use num_derive::FromPrimitive;
+use num_traits::FromPrimitive;
 use itertools::Itertools;
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone, FromPrimitive)]
 enum Dir { N, NE, E, SE, S, SW, W, NW }
+
+impl Dir {
+	fn delta(self) -> (isize, isize) {
+		use Dir::*;
+
+		match self {
+		N  => ( 0, -1),
+		NE => ( 1, -1),
+		E  => ( 1,  0),
+		SE => ( 1,  1),
+		S  => ( 0,  1),
+		SW => (-1,  1),
+		W  => (-1,  0),
+		NW => (-1, -1),
+		}
+	}
+
+	fn turn(self, i: i8) -> Dir {
+		let n = (self as u8) as i8;
+		Dir::from_u8((n + i).rem_euclid(8) as u8).unwrap()
+	}
+}
 
 #[derive(Debug)]
 struct Thread {
@@ -46,20 +70,7 @@ impl Thread {
 	}
 
 	fn r#move(&mut self, width: usize, height: usize) {
-		fn delta(dir: &Dir) -> (isize, isize) {
-			match dir {
-			Dir::N  => ( 0, -1),
-			Dir::NE => ( 1, -1),
-			Dir::E  => ( 1,  0),
-			Dir::SE => ( 1,  1),
-			Dir::S  => ( 0,  1),
-			Dir::SW => (-1,  1),
-			Dir::W  => (-1,  0),
-			Dir::NW => (-1, -1),
-			}
-		}
-
-		let (dx, dy) = delta(&self.dir);
+		let (dx, dy) = self.dir.delta();
 		self.movexy(dx, dy, width, height);
 	}
 
@@ -110,18 +121,30 @@ impl Kye {
 
 	fn tick(&mut self) {
 		for thread in self.threads.iter_mut() {
+			use Dir::*;
+
 			let c = self.cells[thread.y][thread.x];
 
 			match c {
-			'1' => thread.dir = Dir::SW,
-			'2' => thread.dir = Dir::S,
-			'3' => thread.dir = Dir::SE,
-			'4' => thread.dir = Dir::W,
+			'1' => thread.dir = SW,
+			'2' => thread.dir = S,
+			'3' => thread.dir = SE,
+			'4' => thread.dir = W,
 			'5' => { },
-			'6' => thread.dir = Dir::E,
-			'7' => thread.dir = Dir::NW,
-			'8' => thread.dir = Dir::N,
-			'9' => thread.dir = Dir::NE,
+			'6' => thread.dir = E,
+			'7' => thread.dir = NW,
+			'8' => thread.dir = N,
+			'9' => thread.dir = NE,
+
+			'_'  => thread.dir = match thread.dir { N => S, NE => SE, E => E, SE => NE, S => N, SW => NW, W => W, NW => SW },
+			'|'  => thread.dir = match thread.dir { N => N, NE => NW, E => W, SE => SW, S => S, SW => SE, W => E, NW => NE },
+			'/'  => thread.dir = match thread.dir { N => E, NE => NE, E => N, SE => NW, S => W, SW => SW, W => S, NW => SE },
+			'\\' => thread.dir = match thread.dir { N => W, NE => SW, E => S, SE => SE, S => E, SW => NE, W => N, NW => NW },
+
+			'C'  => thread.dir = thread.dir.turn( 2),
+			'c'  => thread.dir = thread.dir.turn( 1),
+			'A'  => thread.dir = thread.dir.turn(-2),
+			'a'  => thread.dir = thread.dir.turn(-1),
 
 			'Q' => { }
 			_ => { }
@@ -177,7 +200,7 @@ fn main() -> io::Result<()> {
 	loop {
 		eprint!("\x1b[0;0H");
 		kye.print();
-		std::thread::sleep(time::Duration::from_millis(250));
+		std::thread::sleep(time::Duration::from_millis(200));
 		kye.tick();
 	}
 }

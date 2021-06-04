@@ -41,7 +41,7 @@ impl Dir {
 #[derive(Debug, Copy, Clone, PartialEq)]
 enum State { Dead, Push, PushEsc, Char, CharEsc, Exec }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Thread {
 	x: usize,
 	y: usize,
@@ -77,6 +77,12 @@ impl fmt::Debug for Kye {
 impl Thread {
 	fn new() -> Thread {
 		Thread { x: 0, y: 0, dir: Dir::E, state: State::Exec, stack: vec![] }
+	}
+
+	fn fork(&self, i: i8) -> Thread {
+		let mut new = self.clone();
+		new.dir = self.dir.turn(i);
+		new
 	}
 
 	fn r#move(&mut self, width: usize, height: usize) {
@@ -130,6 +136,8 @@ impl Kye {
 	}
 
 	fn tick(&mut self) {
+		let mut spawn = vec![];
+
 		for thread in self.threads.iter_mut() {
 			let c = self.cells[thread.y][thread.x];
 
@@ -201,21 +209,35 @@ impl Kye {
 					}
 				}
 
+				'G' => spawn.push(thread.fork(-2)),
+				'g' => spawn.push(thread.fork( 2)),
+
+				'T' => {
+					spawn.push(thread.fork(2));
+					thread.dir = thread.dir.turn(-2);
+				}
+
+				'Y' => {
+					spawn.push(thread.fork(1));
+					thread.dir = thread.dir.turn(-1);
+				}
+
 				'@' => {
 					thread.state = State::Dead;
 					continue;
 				},
 
-				'Q' => { }
-
 				_ => { }
 				}
 			}
-
-			thread.r#move(self.width, self.height)
 		}
 
 		self.threads.retain(|t| t.state != State::Dead);
+		self.threads.append(&mut spawn);
+
+		for thread in self.threads.iter_mut() {
+			thread.r#move(self.width, self.height)
+		}
 	}
 
 	fn cells(&self) -> impl Iterator<Item = (usize, usize)> {

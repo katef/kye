@@ -160,6 +160,7 @@ impl Kye {
 
 	fn tick(&mut self) {
 		let mut spawn = vec![];
+		let mut quit = false;
 
 		for thread in self.threads.iter_mut() {
 			let c = self.cells[thread.y][thread.x];
@@ -260,9 +261,19 @@ impl Kye {
 					continue;
 				},
 
+				'Q' => {
+					quit = true;
+					break;
+				},
+
 				_ => { }
 				}
 			}
+		}
+
+		if quit {
+			self.threads.clear();
+			return;
 		}
 
 		self.threads.retain(|t| t.state != State::Dead);
@@ -360,7 +371,14 @@ fn main() -> io::Result<()> {
 	loop {
 		eprint!("\x1b[0;0H");
 		kye.print();
+
+		if kye.threads.is_empty() {
+			break;
+		}
+
 		std::thread::sleep(time::Duration::from_millis(200));
 		kye.tick();
 	}
+
+	Ok(())
 }

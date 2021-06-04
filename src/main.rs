@@ -47,7 +47,7 @@ struct Thread {
 	y: usize,
 	dir: Dir,
 	state: State,
-	stack: Vec<char>,
+	stack: Vec<u32>,
 }
 
 struct Kye {
@@ -135,6 +135,18 @@ impl Kye {
 		Kye::new(cells, width, height)
 	}
 
+	fn esc(c: char) -> u32 {
+		match c {
+		't' => '\t' as u32,
+		'n' => '\n' as u32,
+		'v' => 0x0B,
+		'f' => 0x0C,
+		'r' => '\r' as u32,
+		'0'..='9' => c as u32 - '0' as u32,
+		_ => c as u32,
+		}
+	}
+
 	fn tick(&mut self) {
 		let mut spawn = vec![];
 
@@ -148,25 +160,25 @@ impl Kye {
 				match c {
 				'\\' => thread.state = State::PushEsc,
 				'\'' => thread.state = State::Exec,
-				_ => thread.stack.push(c),
+				_ => thread.stack.push(c as u32),
 				}
 			}
 
 			State::PushEsc => {
-				thread.stack.push(c); // TODO: escape
+				thread.stack.push(Kye::esc(c));
 				thread.state = State::Push;
 			}
 
 			State::Char => {
 				match c {
 				'\\' => thread.state = State::CharEsc,
-				_ => thread.stack.push(c),
+				_ => thread.stack.push(c as u32),
 				}
 				thread.state = State::Exec;
 			}
 
 			State::CharEsc => {
-				thread.stack.push(c); // TODO: escape
+				thread.stack.push(Kye::esc(c));
 				thread.state = State::Char;
 			}
 
@@ -194,6 +206,8 @@ impl Kye {
 
 				'\'' => thread.state = State::Push,
 				'\"' => thread.state = State::Char,
+
+				'z' => thread.stack.push(0),
 
 				'P' => {
 					// TODO: pop all, print to stdout
@@ -296,7 +310,12 @@ impl Kye {
 		}
 
 		for (i, thread) in self.threads.iter().enumerate() {
-			let s: String = thread.stack.iter().collect(); // TODO: handle non-printable characters
+			let s: String = thread.stack.iter()
+				.map(|n| match char::from_u32(*n) {
+					Some(_c) if *n < 32 => format!("\\x{{{:X}}}", *n),
+					Some(c) => String::from(c),
+					None => format!("\\x{{{:X}}}", *n),
+				}).collect();
 			let color = thread_color(thread.state);
 			let arrow = thread_arrow(thread.dir);
 

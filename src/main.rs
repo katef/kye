@@ -38,11 +38,16 @@ impl Dir {
 	}
 }
 
+#[derive(Debug, Copy, Clone, PartialEq)]
+enum State { Push, PushEsc, Char, CharEsc, Exec }
+
 #[derive(Debug)]
 struct Thread {
 	x: usize,
 	y: usize,
 	dir: Dir,
+	state: State,
+	stack: Vec<char>,
 }
 
 struct Kye {
@@ -71,7 +76,7 @@ impl fmt::Debug for Kye {
 
 impl Thread {
 	fn new() -> Thread {
-		Thread { x: 0, y: 0, dir: Dir::E }
+		Thread { x: 0, y: 0, dir: Dir::E, state: State::Exec, stack: vec![] }
 	}
 
 	fn r#move(&mut self, width: usize, height: usize) {
@@ -128,29 +133,75 @@ impl Kye {
 		for thread in self.threads.iter_mut() {
 			let c = self.cells[thread.y][thread.x];
 
-			match c {
-			'1' => thread.dir = Dir::SW,
-			'2' => thread.dir = Dir::S,
-			'3' => thread.dir = Dir::SE,
-			'4' => thread.dir = Dir::W,
-			'5' => { },
-			'6' => thread.dir = Dir::E,
-			'7' => thread.dir = Dir::NW,
-			'8' => thread.dir = Dir::N,
-			'9' => thread.dir = Dir::NE,
+			match thread.state {
+			State::Push => {
+				match c {
+				'\\' => thread.state = State::PushEsc,
+				'\'' => thread.state = State::Exec,
+				_ => thread.stack.push(c),
+				}
+			}
 
-			'C'  => thread.dir = thread.dir.turn( 2),
-			'c'  => thread.dir = thread.dir.turn( 1),
-			'A'  => thread.dir = thread.dir.turn(-2),
-			'a'  => thread.dir = thread.dir.turn(-1),
+			State::PushEsc => {
+				thread.stack.push(c); // TODO: escape
+				thread.state = State::Push;
+			}
 
-			'|'  => thread.dir = thread.dir.mirror(Dir::N),
-			'/'  => thread.dir = thread.dir.mirror(Dir::NE),
-			'_'  => thread.dir = thread.dir.mirror(Dir::E),
-			'\\' => thread.dir = thread.dir.mirror(Dir::SE),
+			State::Char => {
+				match c {
+				'\\' => thread.state = State::CharEsc,
+				_ => thread.stack.push(c),
+				}
+				thread.state = State::Exec;
+			}
 
-			'Q' => { }
-			_ => { }
+			State::CharEsc => {
+				thread.stack.push(c); // TODO: escape
+				thread.state = State::Char;
+			}
+
+			State::Exec =>
+				match c {
+				'1' => thread.dir = Dir::SW,
+				'2' => thread.dir = Dir::S,
+				'3' => thread.dir = Dir::SE,
+				'4' => thread.dir = Dir::W,
+				'5' => { },
+				'6' => thread.dir = Dir::E,
+				'7' => thread.dir = Dir::NW,
+				'8' => thread.dir = Dir::N,
+				'9' => thread.dir = Dir::NE,
+
+				'C'  => thread.dir = thread.dir.turn( 2),
+				'c'  => thread.dir = thread.dir.turn( 1),
+				'A'  => thread.dir = thread.dir.turn(-2),
+				'a'  => thread.dir = thread.dir.turn(-1),
+
+				'|'  => thread.dir = thread.dir.mirror(Dir::N),
+				'/'  => thread.dir = thread.dir.mirror(Dir::NE),
+				'_'  => thread.dir = thread.dir.mirror(Dir::E),
+				'\\' => thread.dir = thread.dir.mirror(Dir::SE),
+
+				'\'' => thread.state = State::Push,
+				'\"' => thread.state = State::Char,
+
+				'P' => {
+					// TODO: pop all, print to stdout
+					thread.stack.clear();
+				},
+
+				';' => loop {
+					thread.r#move(self.width, self.height);
+
+					// TODO: would prefer to land on the ';' here, but we don't have "peek" yet
+					if self.cells[thread.y][thread.x] == ';' {
+						break;
+					}
+				}
+
+				'Q' => { }
+				_ => { }
+				}
 			}
 
 			thread.r#move(self.width, self.height)
@@ -161,12 +212,11 @@ impl Kye {
 		(0..self.height).cartesian_product(0..self.width)
 	}
 
-	fn thread_at(&self, x: usize, y: usize) -> bool {
-		self.threads.iter()
-			.filter(|t| (x, y) == (t.x, t.y)).count() > 0
+	fn threads_at(&self, x: usize, y: usize) -> impl Iterator<Item = &Thread> {
+		self.threads.iter().filter(move |t| (t.x, t.y) == (x, y))
 	}
 
-	fn print(&mut self) {
+	fn print(&self) {
 		fn esc(c: char) -> char {
 			if (c as u32) < 32 || (c as u32) > 127 {
 				'.'
@@ -175,18 +225,53 @@ impl Kye {
 			}
 		}
 
+		fn thread_color(state: State) -> i32 {
+			match state {
+			State::Exec => 41,
+			_ => 46,
+			}
+		}
+
+		fn thread_arrow(dir: Dir) -> char {
+			match dir {
+			Dir::N  => '↑',
+			Dir::NE => '↗',
+			Dir::E  => '→',
+			Dir::SE => '↘',
+			Dir::S  => '↓',
+			Dir::SW => '↙',
+			Dir::W  => '←',
+			Dir::NW => '↖',
+			}
+		}
+
 		for (y, x) in self.cells() {
-			let cursor = self.thread_at(x, y);
-			if cursor {
-				eprint!("\x1b[1;41m");
+			let color = self.threads_at(x, y)
+				.map(|t| thread_color(t.state))
+				.max(); // TODO: .max() is a placeholder
+
+			if color != None {
+				eprint!("\x1b[1;{}m", color.unwrap());
 			}
 			eprint!("{}", esc(self.cells[y][x]));
-			if cursor {
+			if color != None {
 				eprint!("\x1b[0m");
 			}
 			if x == self.width - 1 {
 				eprintln!("");
 			}
+		}
+
+		for (i, thread) in self.threads.iter().enumerate() {
+			let s: String = thread.stack.iter().collect(); // TODO: handle non-printable characters
+			let color = thread_color(thread.state);
+			let arrow = thread_arrow(thread.dir);
+
+			eprint!("{:2},{:2} {} ", thread.x, thread.y, arrow);
+			eprint!("\x1b[1;{}m", color);
+			eprint!("{}", i);
+			eprint!("\x1b[0m");
+			eprintln!(": {}\x1b[0K", s);
 		}
 	}
 }

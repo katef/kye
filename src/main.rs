@@ -39,7 +39,7 @@ impl Dir {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-enum State { Push, PushEsc, Char, CharEsc, Exec }
+enum State { Dead, Push, PushEsc, Char, CharEsc, Exec }
 
 #[derive(Debug)]
 struct Thread {
@@ -134,6 +134,8 @@ impl Kye {
 			let c = self.cells[thread.y][thread.x];
 
 			match thread.state {
+			State::Dead => panic!("unexpected state"),
+
 			State::Push => {
 				match c {
 				'\\' => thread.state = State::PushEsc,
@@ -199,13 +201,21 @@ impl Kye {
 					}
 				}
 
+				'@' => {
+					thread.state = State::Dead;
+					continue;
+				},
+
 				'Q' => { }
+
 				_ => { }
 				}
 			}
 
 			thread.r#move(self.width, self.height)
 		}
+
+		self.threads.retain(|t| t.state != State::Dead);
 	}
 
 	fn cells(&self) -> impl Iterator<Item = (usize, usize)> {
@@ -227,6 +237,7 @@ impl Kye {
 
 		fn thread_color(state: State) -> i32 {
 			match state {
+			State::Dead => 0,
 			State::Exec => 41,
 			_ => 46,
 			}
@@ -273,6 +284,7 @@ impl Kye {
 			eprint!("\x1b[0m");
 			eprintln!(": {}\x1b[0K", s);
 		}
+		eprintln!("\x1b[J");
 	}
 }
 

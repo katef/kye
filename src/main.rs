@@ -94,6 +94,17 @@ impl Thread {
 		self.x = (self.x as isize + dx).rem_euclid(width  as isize) as usize;
 		self.y = (self.y as isize + dy).rem_euclid(height as isize) as usize;
 	}
+
+	fn push(&mut self, n: u32) {
+		self.stack.push(n);
+	}
+
+	fn pop(&mut self) -> u32 {
+		match self.stack.pop() {
+			Some(n) => n,
+			None => 0,
+		}
+	}
 }
 
 impl Kye {
@@ -160,26 +171,26 @@ impl Kye {
 				match c {
 				'\\' => thread.state = State::PushEsc,
 				'\'' => thread.state = State::Exec,
-				_ => thread.stack.push(c as u32),
+				_ => thread.push(c as u32),
 				}
 			}
 
 			State::PushEsc => {
-				thread.stack.push(Kye::esc(c));
+				thread.push(Kye::esc(c));
 				thread.state = State::Push;
 			}
 
 			State::Char => {
+				thread.state = State::Exec;
 				match c {
 				'\\' => thread.state = State::CharEsc,
-				_ => thread.stack.push(c as u32),
+				_ => thread.push(c as u32),
 				}
-				thread.state = State::Exec;
 			}
 
 			State::CharEsc => {
-				thread.stack.push(Kye::esc(c));
-				thread.state = State::Char;
+				thread.push(Kye::esc(c));
+				thread.state = State::Exec;
 			}
 
 			State::Exec =>
@@ -207,7 +218,15 @@ impl Kye {
 				'\'' => thread.state = State::Push,
 				'\"' => thread.state = State::Char,
 
-				'z' => thread.stack.push(0),
+				'#' => thread.r#move(self.width, self.height),
+				'j' => for _ in 0..thread.pop() {
+					thread.r#move(self.width, self.height);
+				},
+				't' => if thread.pop() == 0 {
+					thread.r#move(self.width, self.height);
+				},
+
+				'z' => thread.push(0),
 
 				'P' => {
 					// TODO: pop all, print to stdout

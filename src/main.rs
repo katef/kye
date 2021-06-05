@@ -361,7 +361,7 @@ impl Kye {
 fn main() -> io::Result<()> {
 	let args: Vec<String> = env::args().collect();
 
-	let f = File::open(&args[1]).unwrap(); // XXX
+	let f = File::open(&args[1])?;
 	let buf = io::BufReader::new(f);
 
 	let mut kye = Kye::read(buf);

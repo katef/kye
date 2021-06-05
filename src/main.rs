@@ -50,11 +50,18 @@ struct Thread {
 	stack: Vec<u32>,
 }
 
+struct Automaton {
+	x: usize,
+	y: usize,
+	dir: Dir,
+}
+
 struct Kye {
 	cells: Vec<Vec<char>>,
 	width: usize,
 	height: usize,
 	threads: Vec<Thread>,
+	automata: Vec<Automaton>,
 	exit_status: u32,
 }
 
@@ -105,16 +112,37 @@ impl Thread {
 	}
 }
 
+impl Automaton {
+	fn is_automaton(c: char) -> bool {
+		c == '^' || c == '>' || c == 'v' || c == '<'
+	}
+
+	fn char_to_dir(c :char) -> Option<Dir> {
+		match c {
+		'^' => Some(Dir::N),
+		'>' => Some(Dir::E),
+		'v' => Some(Dir::S),
+		'<' => Some(Dir::W),
+		_ => None
+		}
+	}
+
+	fn new(x: usize, y: usize, dir: Dir) -> Automaton {
+		Automaton { x, y, dir }
+	}
+}
+
 impl Kye {
-	fn new(cells: Vec<Vec<char>>, width: usize, height: usize) -> Kye {
+	fn new(cells: Vec<Vec<char>>, automata: Vec<Automaton>, width: usize, height: usize) -> Kye {
 		let threads = vec![Thread::new()];
 
-		Kye { cells, width, height, threads, exit_status: 0 }
+		Kye { cells, width, height, threads, automata, exit_status: 0 }
 	}
 
 	fn read<R: BufRead>(buf: R) -> Kye {
 		let mut width: usize = 0;
 		let mut height: usize = 0;
+		let mut automata = vec![];
 
 		fn hashbang(i: usize, line: &str) -> bool {
 			i == 0 && line.starts_with('#')
@@ -137,11 +165,20 @@ impl Kye {
 			.collect();
 
 		let mut cells = Vec::with_capacity(height);
-		for line in lines {
-			cells.push(format!("{:1$}", line, width).chars().collect::<Vec<_>>());
+		for (y, line) in lines.iter().enumerate() {
+			let mut row = vec![];
+			for (x, c) in format!("{:1$}", line, width).chars().enumerate() {
+				if Automaton::is_automaton(c) {
+					row.push(' ');
+					automata.push(Automaton::new(x, y, Automaton::char_to_dir(c).unwrap()));
+				} else {
+					row.push(c);
+				}
+			}
+			cells.push(row);
 		}
 
-		Kye::new(cells, width, height)
+		Kye::new(cells, automata, width, height)
 	}
 
 	fn esc(c: char) -> u32 {
@@ -291,6 +328,10 @@ impl Kye {
 		self.threads.iter().filter(move |t| (t.x, t.y) == (x, y))
 	}
 
+	fn automata_at(&self, x: usize, y: usize) -> impl Iterator<Item = &Automaton> {
+		self.automata.iter().filter(move |t| (t.x, t.y) == (x, y))
+	}
+
 	fn print(&self) {
 		fn esc(c: char) -> char {
 			if (c as u32) < 32 || (c as u32) > 127 {
@@ -321,6 +362,16 @@ impl Kye {
 			}
 		}
 
+		fn automata_char(dir: Dir) -> char {
+			match dir {
+			Dir::N  => '^',
+			Dir::E  => '>',
+			Dir::S  => 'v',
+			Dir::W  => '<',
+			_ => panic!("unrecognised automata direction"),
+			}
+		}
+
 		for (y, x) in self.cells() {
 			let color = self.threads_at(x, y)
 				.map(|t| thread_color(t.state))
@@ -329,7 +380,13 @@ impl Kye {
 			if color != None {
 				eprint!("\x1b[1;{}m", color.unwrap());
 			}
-			eprint!("{}", esc(self.cells[y][x]));
+			if self.cells[y][x] != ' ' {
+				eprint!("{}", esc(self.cells[y][x]));
+			} else if let Some(automata) = self.automata_at(x, y).next() {
+				eprint!("{}", automata_char(automata.dir));
+			} else {
+				eprint!(" ");
+			}
 			if color != None {
 				eprint!("\x1b[0m");
 			}

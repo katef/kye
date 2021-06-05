@@ -55,6 +55,7 @@ struct Kye {
 	width: usize,
 	height: usize,
 	threads: Vec<Thread>,
+	exit_status: u32,
 }
 
 impl fmt::Debug for Kye {
@@ -111,7 +112,7 @@ impl Kye {
 	fn new(cells: Vec<Vec<char>>, width: usize, height: usize) -> Kye {
 		let threads = vec![Thread::new()];
 
-		Kye { cells: cells, width: width, height: height, threads: threads, }
+		Kye { cells: cells, width: width, height: height, threads: threads, exit_status: 0 }
 	}
 
 	fn read<R: BufRead>(buf: R) -> Kye {
@@ -262,6 +263,7 @@ impl Kye {
 				},
 
 				'Q' => {
+					self.exit_status = thread.pop();
 					quit = true;
 					break;
 				},
@@ -378,6 +380,10 @@ fn main() -> io::Result<()> {
 
 		std::thread::sleep(time::Duration::from_millis(200));
 		kye.tick();
+	}
+
+	if kye.exit_status != 0 {
+		std::process::exit(kye.exit_status as i32);
 	}
 
 	Ok(())

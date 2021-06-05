@@ -101,10 +101,7 @@ impl Thread {
 	}
 
 	fn pop(&mut self) -> u32 {
-		match self.stack.pop() {
-			Some(n) => n,
-			None => 0,
-		}
+		self.stack.pop().unwrap_or(0)
 	}
 }
 
@@ -112,7 +109,7 @@ impl Kye {
 	fn new(cells: Vec<Vec<char>>, width: usize, height: usize) -> Kye {
 		let threads = vec![Thread::new()];
 
-		Kye { cells: cells, width: width, height: height, threads: threads, exit_status: 0 }
+		Kye { cells, width, height, threads, exit_status: 0 }
 	}
 
 	fn read<R: BufRead>(buf: R) -> Kye {
@@ -120,7 +117,7 @@ impl Kye {
 		let mut height: usize = 0;
 
 		fn hashbang(i: usize, line: &str) -> bool {
-			return i == 0 && line.starts_with("#")
+			i == 0 && line.starts_with('#')
 		}
 
 		let lines: Vec<_> = buf.lines()
@@ -337,7 +334,7 @@ impl Kye {
 				eprint!("\x1b[0m");
 			}
 			if x == self.width - 1 {
-				eprintln!("");
+				eprintln!();
 			}
 		}
 

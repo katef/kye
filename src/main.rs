@@ -38,21 +38,41 @@ impl Dir {
 	}
 }
 
+#[derive(Debug, Clone)]
+struct Coord {
+	x: usize,
+	y: usize,
+}
+
+impl Coord {
+	fn new(x: usize, y: usize) -> Coord {
+		Coord { x, y }
+	}
+
+	fn r#move(&mut self, dir: Dir, width: usize, height: usize) {
+		let (dx, dy) = dir.delta();
+		self.movexy(dx, dy, width, height);
+	}
+
+	fn movexy(&mut self, dx: isize, dy: isize, width: usize, height: usize) {
+		self.x = (self.x as isize + dx).rem_euclid(width  as isize) as usize;
+		self.y = (self.y as isize + dy).rem_euclid(height as isize) as usize;
+	}
+}
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 enum State { Dead, Push, PushEsc, Char, CharEsc, Exec }
 
 #[derive(Debug, Clone)]
 struct Thread {
-	x: usize,
-	y: usize,
+	coord: Coord,
 	dir: Dir,
 	state: State,
 	stack: Vec<u32>,
 }
 
 struct Automaton {
-	x: usize,
-	y: usize,
+	coord: Coord,
 	dir: Dir,
 }
 
@@ -84,23 +104,14 @@ impl fmt::Debug for Kye {
 
 impl Thread {
 	fn new() -> Thread {
-		Thread { x: 0, y: 0, dir: Dir::E, state: State::Exec, stack: vec![] }
+		let coord = Coord::new(0, 0);
+		Thread { coord, dir: Dir::E, state: State::Exec, stack: vec![] }
 	}
 
 	fn fork(&self, i: i8) -> Thread {
 		let mut new = self.clone();
 		new.dir = self.dir.turn(i);
 		new
-	}
-
-	fn r#move(&mut self, width: usize, height: usize) {
-		let (dx, dy) = self.dir.delta();
-		self.movexy(dx, dy, width, height);
-	}
-
-	fn movexy(&mut self, dx: isize, dy: isize, width: usize, height: usize) {
-		self.x = (self.x as isize + dx).rem_euclid(width  as isize) as usize;
-		self.y = (self.y as isize + dy).rem_euclid(height as isize) as usize;
 	}
 
 	fn push(&mut self, n: u32) {
@@ -117,7 +128,7 @@ impl Automaton {
 		c == '^' || c == '>' || c == 'v' || c == '<'
 	}
 
-	fn char_to_dir(c :char) -> Option<Dir> {
+	fn char_to_dir(c: char) -> Option<Dir> {
 		match c {
 		'^' => Some(Dir::N),
 		'>' => Some(Dir::E),
@@ -128,7 +139,8 @@ impl Automaton {
 	}
 
 	fn new(x: usize, y: usize, dir: Dir) -> Automaton {
-		Automaton { x, y, dir }
+		let coord = Coord::new(x, y);
+		Automaton { coord, dir }
 	}
 }
 
@@ -198,7 +210,7 @@ impl Kye {
 		let mut quit = false;
 
 		for thread in self.threads.iter_mut() {
-			let c = self.cells[thread.y][thread.x];
+			let c = self.cells[thread.coord.y][thread.coord.x];
 
 			match thread.state {
 			State::Dead => panic!("unexpected state"),
@@ -254,12 +266,12 @@ impl Kye {
 				'\'' => thread.state = State::Push,
 				'\"' => thread.state = State::Char,
 
-				'#' => thread.r#move(self.width, self.height),
+				'#' => thread.coord.r#move(thread.dir, self.width, self.height),
 				'j' => for _ in 0..thread.pop() {
-					thread.r#move(self.width, self.height);
+					thread.coord.r#move(thread.dir, self.width, self.height);
 				},
 				't' => if thread.pop() == 0 {
-					thread.r#move(self.width, self.height);
+					thread.coord.r#move(thread.dir, self.width, self.height);
 				},
 
 				'z' => thread.push(0),
@@ -280,10 +292,10 @@ impl Kye {
 				},
 
 				';' => loop {
-					thread.r#move(self.width, self.height);
+					thread.coord.r#move(thread.dir, self.width, self.height);
 
 					// TODO: would prefer to land on the ';' here, but we don't have "peek" yet
-					if self.cells[thread.y][thread.x] == ';' {
+					if self.cells[thread.coord.y][thread.coord.x] == ';' {
 						break;
 					}
 				}
@@ -326,7 +338,7 @@ impl Kye {
 		self.threads.append(&mut spawn);
 
 		for thread in self.threads.iter_mut() {
-			thread.r#move(self.width, self.height)
+			thread.coord.r#move(thread.dir, self.width, self.height)
 		}
 	}
 
@@ -335,11 +347,11 @@ impl Kye {
 	}
 
 	fn threads_at(&self, x: usize, y: usize) -> impl Iterator<Item = &Thread> {
-		self.threads.iter().filter(move |t| (t.x, t.y) == (x, y))
+		self.threads.iter().filter(move |t| (t.coord.x, t.coord.y) == (x, y))
 	}
 
 	fn automata_at(&self, x: usize, y: usize) -> impl Iterator<Item = &Automaton> {
-		self.automata.iter().filter(move |t| (t.x, t.y) == (x, y))
+		self.automata.iter().filter(move |t| (t.coord.x, t.coord.y) == (x, y))
 	}
 
 	fn print(&self) {
@@ -415,7 +427,7 @@ impl Kye {
 			let color = thread_color(thread.state);
 			let arrow = thread_arrow(thread.dir);
 
-			eprint!("{:2},{:2} {} ", thread.x, thread.y, arrow);
+			eprint!("{:2},{:2} {} ", thread.coord.x, thread.coord.y, arrow);
 			eprint!("\x1b[1;{}m", color);
 			eprint!("{}", i);
 			eprint!("\x1b[0m");

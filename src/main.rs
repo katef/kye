@@ -264,6 +264,16 @@ impl Kye {
 
 				'z' => thread.push(0),
 
+				',' => {
+					let codepoint = thread.pop();
+
+					if let Some(character) = char::from_u32(codepoint) {
+						print!("{}", character);
+					} else {
+						print!("\\{:04X}", thread.pop());
+					}
+				},
+
 				'P' => {
 					// TODO: pop all, print to stdout
 					thread.stack.clear();

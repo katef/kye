@@ -270,7 +270,7 @@ impl Kye {
 					if let Some(character) = char::from_u32(codepoint) {
 						print!("{}", character);
 					} else {
-						print!("\\{:04X}", thread.pop());
+						print!("\\u{{{:04X}}}", codepoint);
 					}
 				},
 

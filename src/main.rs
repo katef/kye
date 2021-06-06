@@ -36,6 +36,10 @@ impl Dir {
 		let n = m as i8 * 2 - self as i8;
 		Dir::from_u8(n.rem_euclid(8) as u8).unwrap()
 	}
+
+	fn bounce(self) -> Dir {
+		self.turn(4)
+	}
 }
 
 #[derive(Debug, Clone)]
@@ -49,14 +53,11 @@ impl Coord {
 		Coord { x, y }
 	}
 
-	fn r#move(&mut self, dir: Dir, width: usize, height: usize) {
+	fn r#move(&mut self, dir: Dir, width: usize, height: usize) -> Coord {
 		let (dx, dy) = dir.delta();
-		self.movexy(dx, dy, width, height);
-	}
-
-	fn movexy(&mut self, dx: isize, dy: isize, width: usize, height: usize) {
-		self.x = (self.x as isize + dx).rem_euclid(width  as isize) as usize;
-		self.y = (self.y as isize + dy).rem_euclid(height as isize) as usize;
+		let x = (self.x as isize + dx).rem_euclid(width  as isize) as usize;
+		let y = (self.y as isize + dy).rem_euclid(height as isize) as usize;
+		Coord::new(x, y)
 	}
 }
 
@@ -266,12 +267,12 @@ impl Kye {
 				'\'' => thread.state = State::Push,
 				'\"' => thread.state = State::Char,
 
-				'#' => thread.coord.r#move(thread.dir, self.width, self.height),
+				'#' => thread.coord = thread.coord.r#move(thread.dir, self.width, self.height),
 				'j' => for _ in 0..thread.pop() {
-					thread.coord.r#move(thread.dir, self.width, self.height);
+					thread.coord = thread.coord.r#move(thread.dir, self.width, self.height);
 				},
 				't' => if thread.pop() == 0 {
-					thread.coord.r#move(thread.dir, self.width, self.height);
+					thread.coord = thread.coord.r#move(thread.dir, self.width, self.height);
 				},
 
 				'z' => thread.push(0),
@@ -292,7 +293,7 @@ impl Kye {
 				},
 
 				';' => loop {
-					thread.coord.r#move(thread.dir, self.width, self.height);
+					thread.coord = thread.coord.r#move(thread.dir, self.width, self.height);
 
 					// TODO: would prefer to land on the ';' here, but we don't have "peek" yet
 					if self.cells[thread.coord.y][thread.coord.x] == ';' {
@@ -338,7 +339,16 @@ impl Kye {
 		self.threads.append(&mut spawn);
 
 		for thread in self.threads.iter_mut() {
-			thread.coord.r#move(thread.dir, self.width, self.height)
+			thread.coord = thread.coord.r#move(thread.dir, self.width, self.height)
+		}
+
+		for automaton in self.automata.iter_mut() {
+			let peek = automaton.coord.r#move(automaton.dir, self.width, self.height);
+			if self.cells[peek.y][peek.x] != ' ' {
+				automaton.dir = automaton.dir.bounce();
+			}
+
+			automaton.coord = automaton.coord.r#move(automaton.dir, self.width, self.height);
 		}
 	}
 

@@ -271,7 +271,12 @@ impl Kye {
 		self.threads.append(&mut spawn);
 
 		for thread in self.threads.iter_mut() {
-			thread.coord.r#move(thread.dir, self.width, self.height)
+			loop {
+				thread.coord.r#move(thread.dir, self.width, self.height);
+				if thread.state != State::Exec || self.cells[thread.coord.y][thread.coord.x] != ' ' {
+					break;
+				}
+			}
 		}
 
 		for automaton in self.automata.iter_mut() {

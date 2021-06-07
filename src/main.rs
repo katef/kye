@@ -130,6 +130,10 @@ impl Automaton {
 		c == '^' || c == '>' || c == 'v' || c == '<'
 	}
 
+	fn is_pushable(c: char) -> bool {
+		c != 'O'
+	}
+
 	fn char_to_dir(c: char) -> Option<Dir> {
 		match c {
 		'^' => Some(Dir::N),
@@ -352,11 +356,25 @@ impl Kye {
 			let instr_collision = self.cells[automaton.coord.y][automaton.coord.x] != ' ';
 			let automata_collision = collisions.iter().filter(|a| a.coord == automaton.coord).count() > 1;
 			if instr_collision || automata_collision {
-				// TODO: if there was a bounce, then we potentially also push a block
+				if !automata_collision {
+					if Automaton::is_pushable(self.cells[automaton.coord.y][automaton.coord.x]) {
+						let peek = automaton.coord.r#move(automaton.dir, self.width, self.height);
+// TODO: and there aren't any automata in the "peek" space?
+// TODO: deal with >| < situation, which should produce < |>
+						if self.cells[peek.y][peek.x] == ' ' {
+							self.cells[peek.y][peek.x] = self.cells[automaton.coord.y][automaton.coord.x];
+							self.cells[automaton.coord.y][automaton.coord.x] = ' ';
+						}
+					}
+				}
 
 				automaton.dir = automaton.dir.bounce();
 				automaton.coord = automaton.coord.r#move(automaton.dir, self.width, self.height);
-				automaton.coord = automaton.coord.r#move(automaton.dir, self.width, self.height);
+
+				let back = automaton.coord.r#move(automaton.dir, self.width, self.height);
+				if self.cells[back.y][back.x] == ' ' {
+					automaton.coord = back;
+				}
 			}
 		}
 	}

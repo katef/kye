@@ -172,6 +172,8 @@ impl Kye {
 				},
 
 				'z' => thread.push(0),
+				'[' => { let c = thread.pop() + 1; thread.push(c); },
+				']' => { let c = thread.pop() - 1; thread.push(c); },
 
 				',' => Kye::codepoint_print(thread.pop()),
 				'P' => for _ in 0 ..= thread.stack.iter().count() {

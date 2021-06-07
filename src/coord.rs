@@ -11,19 +11,17 @@ impl Coord {
 		Coord { x, y }
 	}
 
-	pub fn r#move(&self, dir: Dir, width: usize, height: usize) -> Coord {
+	pub fn r#move(&mut self, dir: Dir, width: usize, height: usize) {
 		let (dx, dy) = dir.delta();
 		let x = (self.x as isize + dx).rem_euclid(width  as isize) as usize;
 		let y = (self.y as isize + dy).rem_euclid(height as isize) as usize;
-		Coord::new(x, y)
+		*self = Coord::new(x, y)
 	}
 
-	pub fn moven(&self, dir: Dir, width: usize, height: usize, n: u32) -> Coord {
-		let mut tmp = *self;
+	pub fn moven(&mut self, dir: Dir, width: usize, height: usize, n: u32) {
 		for _ in 0..n {
-			tmp = tmp.r#move(dir, width, height)
+			self.r#move(dir, width, height)
 		}
-		tmp
 	}
 }
 

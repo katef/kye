@@ -150,25 +150,25 @@ impl Kye {
 				'8' => thread.dir = Dir::N,
 				'9' => thread.dir = Dir::NE,
 
-				'C'  => thread.dir = thread.dir.turn( 2),
-				'c'  => thread.dir = thread.dir.turn( 1),
-				'A'  => thread.dir = thread.dir.turn(-2),
-				'a'  => thread.dir = thread.dir.turn(-1),
+				'C'  => thread.dir.turn( 2),
+				'c'  => thread.dir.turn( 1),
+				'A'  => thread.dir.turn(-2),
+				'a'  => thread.dir.turn(-1),
 
-				'|'  => thread.dir = thread.dir.mirror(Dir::N),
-				'/'  => thread.dir = thread.dir.mirror(Dir::NE),
-				'_'  => thread.dir = thread.dir.mirror(Dir::E),
-				'\\' => thread.dir = thread.dir.mirror(Dir::SE),
+				'|'  => thread.dir.mirror(Dir::N),
+				'/'  => thread.dir.mirror(Dir::NE),
+				'_'  => thread.dir.mirror(Dir::E),
+				'\\' => thread.dir.mirror(Dir::SE),
 
 				'\'' => thread.state = State::Push,
 				'\"' => thread.state = State::Char,
 
-				'#' => thread.coord = thread.coord.r#move(thread.dir, self.width, self.height),
+				'#' => thread.coord.r#move(thread.dir, self.width, self.height),
 				'j' => for _ in 0..thread.pop() {
-					thread.coord = thread.coord.r#move(thread.dir, self.width, self.height);
+					thread.coord.r#move(thread.dir, self.width, self.height);
 				},
 				't' => if thread.pop() == 0 {
-					thread.coord = thread.coord.r#move(thread.dir, self.width, self.height);
+					thread.coord.r#move(thread.dir, self.width, self.height);
 				},
 
 				'z' => thread.push(0),
@@ -182,7 +182,10 @@ impl Kye {
 
 				'm' => {
 					let c = char::from_u32(thread.pop()).unwrap_or('.');
-					let peek = thread.coord.r#move(thread.dir.turn(2), self.width, self.height);
+					let mut peek = thread.coord;
+					let mut right = thread.dir;
+					right.turn(2);
+					peek.r#move(right, self.width, self.height);
 					self.automata.retain(|a| a.coord != peek);
 					if Automaton::is_automaton(c) {
 						self.cells[peek.y][peek.x] = ' ';
@@ -194,7 +197,10 @@ impl Kye {
 
 				'M' => {
 					let c = char::from_u32(thread.pop()).unwrap_or('.');
-					let peek = thread.coord.r#move(thread.dir.turn(-2), self.width, self.height);
+					let mut peek = thread.coord;
+					let mut left = thread.dir;
+					left.turn(-2);
+					peek.r#move(left, self.width, self.height);
 					self.automata.retain(|a| a.coord != peek);
 					if Automaton::is_automaton(c) {
 						self.cells[peek.y][peek.x] = ' ';
@@ -207,7 +213,8 @@ impl Kye {
 				'H' => {
 					let n = thread.pop();
 					let c = char::from_u32(thread.pop()).unwrap_or('.');
-					let peek = thread.coord.moven(thread.dir, self.width, self.height, n);
+					let mut peek = thread.coord;
+					peek.moven(thread.dir, self.width, self.height, n);
 					self.automata.retain(|a| a.coord != peek);
 					if Automaton::is_automaton(c) {
 						self.cells[peek.y][peek.x] = ' ';
@@ -218,7 +225,7 @@ impl Kye {
 				},
 
 				';' => loop {
-					thread.coord = thread.coord.r#move(thread.dir, self.width, self.height);
+					thread.coord.r#move(thread.dir, self.width, self.height);
 
 					// TODO: would prefer to land on the ';' here, but we don't have "peek" yet
 					if self.cells[thread.coord.y][thread.coord.x] == ';' {
@@ -231,12 +238,12 @@ impl Kye {
 
 				'T' => {
 					spawn.push(thread.fork(2));
-					thread.dir = thread.dir.turn(-2);
+					thread.dir.turn(-2);
 				}
 
 				'Y' => {
 					spawn.push(thread.fork(1));
-					thread.dir = thread.dir.turn(-1);
+					thread.dir.turn(-1);
 				}
 
 				'@' => {
@@ -264,11 +271,11 @@ impl Kye {
 		self.threads.append(&mut spawn);
 
 		for thread in self.threads.iter_mut() {
-			thread.coord = thread.coord.r#move(thread.dir, self.width, self.height)
+			thread.coord.r#move(thread.dir, self.width, self.height)
 		}
 
 		for automaton in self.automata.iter_mut() {
-			automaton.coord = automaton.coord.r#move(automaton.dir, self.width, self.height);
+			automaton.coord.r#move(automaton.dir, self.width, self.height);
 		}
 
 		let collisions = self.automata.clone();
@@ -278,7 +285,8 @@ impl Kye {
 			if instr_collision || automata_collision {
 				if !automata_collision {
 					if Automaton::is_pushable(self.cells[automaton.coord.y][automaton.coord.x]) {
-						let peek = automaton.coord.r#move(automaton.dir, self.width, self.height);
+						let mut peek = automaton.coord;
+						peek.r#move(automaton.dir, self.width, self.height);
 // TODO: and there aren't any automata in the "peek" space?
 // TODO: deal with >| < situation, which should produce < |>
 						if self.cells[peek.y][peek.x] == ' ' {
@@ -288,10 +296,11 @@ impl Kye {
 					}
 				}
 
-				automaton.dir = automaton.dir.bounce();
-				automaton.coord = automaton.coord.r#move(automaton.dir, self.width, self.height);
+				automaton.dir.bounce();
+				automaton.coord.r#move(automaton.dir, self.width, self.height);
 
-				let back = automaton.coord.r#move(automaton.dir, self.width, self.height);
+				let mut back = automaton.coord;
+				back.r#move(automaton.dir, self.width, self.height);
 				if self.cells[back.y][back.x] == ' ' {
 					automaton.coord = back;
 				}

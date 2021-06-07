@@ -20,18 +20,18 @@ impl Dir {
 		}
 	}
 
-	pub fn turn(self, i: i8) -> Dir {
-		let n = (self as u8) as i8 + i;
-		Dir::from_u8(n.rem_euclid(8) as u8).unwrap()
+	pub fn turn(&mut self, i: i8) {
+		let n = (*self as u8) as i8 + i;
+		*self = Dir::from_u8(n.rem_euclid(8) as u8).unwrap();
 	}
 
-	pub fn mirror(self, m: Dir) -> Dir {
-		let n = m as i8 * 2 - self as i8;
-		Dir::from_u8(n.rem_euclid(8) as u8).unwrap()
+	pub fn mirror(&mut self, m: Dir) {
+		let n = m as i8 * 2 - *self as i8;
+		*self = Dir::from_u8(n.rem_euclid(8) as u8).unwrap();
 	}
 
-	pub fn bounce(self) -> Dir {
-		self.turn(4)
+	pub fn bounce(&mut self) {
+		self.turn(4);
 	}
 }
 

@@ -20,7 +20,8 @@ impl Thread {
 
 	pub fn fork(&self, i: i8) -> Thread {
 		let mut new = self.clone();
-		new.dir = self.dir.turn(i);
+		new.dir = self.dir;
+		new.dir.turn(i);
 		new
 	}
 

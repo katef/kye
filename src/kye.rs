@@ -94,6 +94,14 @@ impl Kye {
 		}
 	}
 
+	fn codepoint_print(codepoint: u32) {
+		if let Some(character) = char::from_u32(codepoint) {
+			print!("{}", character);
+		} else {
+			print!("\\u{{{:04X}}}", codepoint);
+		}
+	}
+
 	pub fn tick(&mut self) {
 		let mut spawn = vec![];
 		let mut quit = false;
@@ -165,19 +173,45 @@ impl Kye {
 
 				'z' => thread.push(0),
 
-				',' => {
-					let codepoint = thread.pop();
+				',' => Kye::codepoint_print(thread.pop()),
+				'P' => for _ in 0 ..= thread.stack.iter().count() {
+					Kye::codepoint_print(thread.pop());
+				},
 
-					if let Some(character) = char::from_u32(codepoint) {
-						print!("{}", character);
+				'm' => {
+					let c = char::from_u32(thread.pop()).unwrap_or('.');
+					let peek = thread.coord.r#move(thread.dir.turn(2), self.width, self.height);
+					self.automata.retain(|a| a.coord != peek);
+					if Automaton::is_automaton(c) {
+						self.cells[peek.y][peek.x] = ' ';
+						self.automata.push(Automaton::new(peek.x, peek.y, Automaton::char_to_dir(c).unwrap()));
 					} else {
-						print!("\\u{{{:04X}}}", codepoint);
+						self.cells[peek.y][peek.x] = c;
 					}
 				},
 
-				'P' => {
-					// TODO: pop all, print to stdout
-					thread.stack.clear();
+				'M' => {
+					let c = char::from_u32(thread.pop()).unwrap_or('.');
+					let peek = thread.coord.r#move(thread.dir.turn(-2), self.width, self.height);
+					self.automata.retain(|a| a.coord != peek);
+					if Automaton::is_automaton(c) {
+						self.cells[peek.y][peek.x] = ' ';
+						self.automata.push(Automaton::new(peek.x, peek.y, Automaton::char_to_dir(c).unwrap()));
+					} else {
+						self.cells[peek.y][peek.x] = c;
+					}
+				},
+
+				'H' => {
+					let c = char::from_u32(thread.pop()).unwrap_or('.');
+					let peek = thread.coord.r#move(thread.dir, self.width, self.height);
+					self.automata.retain(|a| a.coord != peek);
+					if Automaton::is_automaton(c) {
+						self.cells[peek.y][peek.x] = ' ';
+						self.automata.push(Automaton::new(peek.x, peek.y, Automaton::char_to_dir(c).unwrap()));
+					} else {
+						self.cells[peek.y][peek.x] = c;
+					}
 				},
 
 				';' => loop {

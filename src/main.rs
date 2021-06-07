@@ -42,7 +42,7 @@ impl Dir {
 	}
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 struct Coord {
 	x: usize,
 	y: usize,
@@ -72,6 +72,7 @@ struct Thread {
 	stack: Vec<u32>,
 }
 
+#[derive(Clone)]
 struct Automaton {
 	coord: Coord,
 	dir: Dir,
@@ -343,12 +344,20 @@ impl Kye {
 		}
 
 		for automaton in self.automata.iter_mut() {
-			let peek = automaton.coord.r#move(automaton.dir, self.width, self.height);
-			if self.cells[peek.y][peek.x] != ' ' {
-				automaton.dir = automaton.dir.bounce();
-			}
-
 			automaton.coord = automaton.coord.r#move(automaton.dir, self.width, self.height);
+		}
+
+		let collisions = self.automata.clone();
+		for automaton in self.automata.iter_mut() {
+			let instr_collision = self.cells[automaton.coord.y][automaton.coord.x] != ' ';
+			let automata_collision = collisions.iter().filter(|a| a.coord == automaton.coord).count() > 1;
+			if instr_collision || automata_collision {
+				// TODO: if there was a bounce, then we potentially also push a block
+
+				automaton.dir = automaton.dir.bounce();
+				automaton.coord = automaton.coord.r#move(automaton.dir, self.width, self.height);
+				automaton.coord = automaton.coord.r#move(automaton.dir, self.width, self.height);
+			}
 		}
 	}
 
@@ -361,7 +370,7 @@ impl Kye {
 	}
 
 	fn automata_at(&self, x: usize, y: usize) -> impl Iterator<Item = &Automaton> {
-		self.automata.iter().filter(move |t| (t.coord.x, t.coord.y) == (x, y))
+		self.automata.iter().filter(move |a| (a.coord.x, a.coord.y) == (x, y))
 	}
 
 	fn print(&self) {

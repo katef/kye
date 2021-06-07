@@ -205,8 +205,9 @@ impl Kye {
 				},
 
 				'H' => {
+					let n = thread.pop();
 					let c = char::from_u32(thread.pop()).unwrap_or('.');
-					let peek = thread.coord.r#move(thread.dir, self.width, self.height);
+					let peek = thread.coord.moven(thread.dir, self.width, self.height, n);
 					self.automata.retain(|a| a.coord != peek);
 					if Automaton::is_automaton(c) {
 						self.cells[peek.y][peek.x] = ' ';

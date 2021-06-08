@@ -1,0 +1,12 @@
+              flip-flop
+
+                 /c"4
+                 \m     OOOOOOOOOOOOOOOOO@ ; out A
+          in ;  6 c 
+                 /M     OOOOOOOOOOOOOOOOO@ ; out B
+                 \a"4
+
+   /OOOOOOOOOOOO/
+ /$T  
+ \O/  ; 6-cycle clock
+

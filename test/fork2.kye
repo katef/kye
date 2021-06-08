@@ -1,4 +1,3 @@
-#!/bin/sh
  
     Thread-forking tests.
     Each @ should be executed once, by each thread.

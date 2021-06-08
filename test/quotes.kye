@@ -1,0 +1,12 @@
+#!/bin/kye
+ 
+    This program is intended to test that quoting and
+    escaping within quotes are performed correctly.
+
+    The stack should end as: abcd^E^F
+
+$ "a   'b'  'cd'  \
+/                 /
+\ "\5     '\6'         \
+                       2\
+                       \/

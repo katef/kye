@@ -1,0 +1,19 @@
+#!/bin/kye
+$2
+ 
+     This is a test of the absolute direction instructions.
+     It should just follow the trail.
+ 3
+  314444444
+  13      8
+ 2  3     8
+     666668
+ 
+ 2    4
+       7
+      9
+      8
+     68
+ 3 29 
+  99  
+ 

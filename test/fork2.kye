@@ -1,0 +1,15 @@
+#!/bin/sh
+ 
+    Thread-forking tests.
+    Each @ should be executed once, by each thread.
+
+$   \
+    G       g          g      @
+    2
+    2
+    2     / T \        Y
+    2     2   2       2 2
+    2     2   2       2 2
+    2     2   2       2 2
+    @     @   @       @ @
+

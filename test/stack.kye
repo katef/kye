@@ -1,0 +1,9 @@
+#!/bin/kye
+ 
+    Tests of the stack.
+
+$G 'dcba' P @
+
+
+ 2
+ 8

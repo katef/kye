@@ -2,6 +2,7 @@ use std::fmt;
 use std::io::prelude::*;
 use itertools::Itertools;
 
+use crate::coord::Coord;
 use crate::aut::Automaton;
 use crate::thread::State;
 use crate::thread::Thread;
@@ -34,15 +35,14 @@ impl fmt::Debug for Kye {
 }
 
 impl Kye {
-	fn new(cells: Vec<Vec<char>>, automata: Vec<Automaton>, width: usize, height: usize) -> Kye {
-		let threads = vec![Thread::new()];
-
+	fn new(cells: Vec<Vec<char>>, threads: Vec<Thread>, automata: Vec<Automaton>, width: usize, height: usize) -> Kye {
 		Kye { cells, width, height, threads, automata, exit_status: 0 }
 	}
 
 	pub fn read<R: BufRead>(buf: R) -> Kye {
 		let mut width: usize = 0;
 		let mut height: usize = 0;
+		let mut threads = vec![];
 		let mut automata = vec![];
 
 		fn hashbang(i: usize, line: &str) -> bool {
@@ -69,7 +69,10 @@ impl Kye {
 		for (y, line) in lines.iter().enumerate() {
 			let mut row = vec![];
 			for (x, c) in format!("{:1$}", line, width).chars().enumerate() {
-				if Automaton::is_automaton(c) {
+				if c == '$' {
+					row.push('$');
+					threads.push(Thread::new(Coord::new(x, y)));
+				} else if Automaton::is_automaton(c) {
 					row.push(' ');
 					automata.push(Automaton::new(x, y, Automaton::char_to_dir(c).unwrap()));
 				} else {
@@ -79,7 +82,7 @@ impl Kye {
 			cells.push(row);
 		}
 
-		Kye::new(cells, automata, width, height)
+		Kye::new(cells, threads, automata, width, height)
 	}
 
 	fn esc(c: char) -> u32 {

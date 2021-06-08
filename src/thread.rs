@@ -13,8 +13,7 @@ pub struct Thread {
 }
 
 impl Thread {
-	pub fn new() -> Thread {
-		let coord = Coord::new(0, 0);
+	pub fn new(coord: Coord) -> Thread {
 		Thread { coord, dir: Dir::E, state: State::Exec, stack: vec![] }
 	}
 

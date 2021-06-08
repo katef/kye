@@ -4,12 +4,12 @@
     Each @ should be executed once, by each thread.
 
 $   \
-    G       g          g      @
-    2
-    2
-    2     / T \        Y
-    2     2   2       2 2
-    2     2   2       2 2
-    2     2   2       2 2
-    @     @   @       @ @
+    G       g          g   "%]"\2 g g g g    @
+    2                             H H H H
+    2                             @ @ @ @
+    2     / T \        Y           \ \ \ \
+    2     2   2       2 2          O O O O
+    2     2   2       2 2          O O O O
+    2     2   2       2 2          O O O O
+    @     @   @       @ @          @ @ @ @
 

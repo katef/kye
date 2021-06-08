@@ -190,7 +190,10 @@ impl Kye {
 					right.turn(2);
 					peek.r#move(right, self.width, self.height);
 					self.automata.retain(|a| a.coord != peek);
-					if Automaton::is_automaton(c) {
+					if c == '$' {
+						self.cells[peek.y][peek.x] = '$';
+						spawn.push(Thread::new(peek));
+					} else if Automaton::is_automaton(c) {
 						self.cells[peek.y][peek.x] = ' ';
 						self.automata.push(Automaton::new(peek.x, peek.y, Automaton::char_to_dir(c).unwrap()));
 					} else {
@@ -205,7 +208,10 @@ impl Kye {
 					left.turn(-2);
 					peek.r#move(left, self.width, self.height);
 					self.automata.retain(|a| a.coord != peek);
-					if Automaton::is_automaton(c) {
+					if c == '$' {
+						self.cells[peek.y][peek.x] = '$';
+						spawn.push(Thread::new(peek));
+					} else if Automaton::is_automaton(c) {
 						self.cells[peek.y][peek.x] = ' ';
 						self.automata.push(Automaton::new(peek.x, peek.y, Automaton::char_to_dir(c).unwrap()));
 					} else {
@@ -219,7 +225,10 @@ impl Kye {
 					let mut peek = thread.coord;
 					peek.moven(thread.dir, self.width, self.height, n);
 					self.automata.retain(|a| a.coord != peek);
-					if Automaton::is_automaton(c) {
+					if c == '$' {
+						self.cells[peek.y][peek.x] = '$';
+						spawn.push(Thread::new(peek));
+					} else if Automaton::is_automaton(c) {
 						self.cells[peek.y][peek.x] = ' ';
 						self.automata.push(Automaton::new(peek.x, peek.y, Automaton::char_to_dir(c).unwrap()));
 					} else {

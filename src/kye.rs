@@ -178,6 +178,11 @@ impl Kye {
 				'[' => { let c = thread.pop() + 1; thread.push(c); },
 				']' => { let c = thread.pop() - 1; thread.push(c); },
 
+				'b' => { let c = thread.pop(); thread.dir.turn(if c > 0 {  1 } else { -1 }); },
+				'd' => { let c = thread.pop(); thread.dir.turn(if c > 0 { -1 } else {  1 }); },
+				'B' => { let c = thread.pop(); thread.dir.turn(if c > 0 {  2 } else { -2 }); },
+				'D' => { let c = thread.pop(); thread.dir.turn(if c > 0 { -2 } else {  2 }); },
+
 				',' => Kye::codepoint_print(thread.pop()),
 				'P' => for _ in 0 ..= thread.stack.iter().count() {
 					Kye::codepoint_print(thread.pop());

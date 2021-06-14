@@ -188,6 +188,38 @@ impl Kye {
 					Kye::codepoint_print(thread.pop());
 				},
 
+				'p' => {
+					let mut peek = thread.coord;
+					let mut right = thread.dir;
+					right.turn(2);
+					peek.r#move(right, self.width, self.height);
+					let c = self.cells[peek.y][peek.x];
+					if c == ' ' {
+/* XXX: need to handle automata
+						if let Some(automata) = self.automata_at(peek.x, peek.y).next() {
+							c = char::from(automata);
+						}
+*/
+					}
+					thread.push(c as u32);
+				},
+
+				'q' => {
+					let mut peek = thread.coord;
+					let mut right = thread.dir;
+					right.turn(-2);
+					peek.r#move(right, self.width, self.height);
+					let c = self.cells[peek.y][peek.x];
+					if c == ' ' {
+/* XXX: need to handle automata
+						if let Some(automata) = self.automata_at(peek.x, peek.y).next() {
+							c = char::from(automata);
+						}
+*/
+					}
+					thread.push(c as u32);
+				},
+
 				'm' => {
 					let c = char::from_u32(thread.pop()).unwrap_or('.');
 					let mut peek = thread.coord;

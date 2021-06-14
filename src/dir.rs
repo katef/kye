@@ -4,11 +4,28 @@ use num_traits::FromPrimitive;
 #[derive(Debug, Copy, Clone, FromPrimitive)]
 pub enum Dir { N, NE, E, SE, S, SW, W, NW }
 
-impl Dir {
-	pub fn delta(self) -> (isize, isize) {
+impl From<Dir> for char {
+	fn from(dir: Dir) -> char {
 		use Dir::*;
 
-		match self {
+		match dir {
+		N  => '↑',
+		NE => '↗',
+		E  => '→',
+		SE => '↘',
+		S  => '↓',
+		SW => '↙',
+		W  => '←',
+		NW => '↖',
+		}
+	}
+}
+
+impl From<Dir> for (isize, isize) {
+	fn from(dir: Dir) -> (isize, isize) {
+		use Dir::*;
+
+		match dir {
 		N  => ( 0, -1),
 		NE => ( 1, -1),
 		E  => ( 1,  0),
@@ -19,7 +36,9 @@ impl Dir {
 		NW => (-1, -1),
 		}
 	}
+}
 
+impl Dir {
 	pub fn turn(&mut self, i: i8) {
 		let n = (*self as u8) as i8 + i;
 		*self = Dir::from_u8(n.rem_euclid(8) as u8).unwrap();

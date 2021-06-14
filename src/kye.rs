@@ -71,10 +71,10 @@ impl Kye {
 			for (x, c) in format!("{:1$}", line, width).chars().enumerate() {
 				if c == '$' {
 					row.push('$');
-					threads.push(Thread::new(Coord::new(x, y)));
+					threads.push(Thread::new(Coord::from((x, y))));
 				} else if Automaton::is_automaton(c) {
 					row.push(' ');
-					automata.push(Automaton::new(x, y, Automaton::char_to_dir(c).unwrap()));
+					automata.push(Automaton::new(Coord::from((x, y)), Automaton::char_to_dir(c).unwrap()));
 				} else {
 					row.push(c);
 				}
@@ -200,7 +200,7 @@ impl Kye {
 						spawn.push(Thread::new(peek));
 					} else if Automaton::is_automaton(c) {
 						self.cells[peek.y][peek.x] = ' ';
-						self.automata.push(Automaton::new(peek.x, peek.y, Automaton::char_to_dir(c).unwrap()));
+						self.automata.push(Automaton::new(peek, Automaton::char_to_dir(c).unwrap()));
 					} else {
 						self.cells[peek.y][peek.x] = c;
 					}
@@ -218,7 +218,7 @@ impl Kye {
 						spawn.push(Thread::new(peek));
 					} else if Automaton::is_automaton(c) {
 						self.cells[peek.y][peek.x] = ' ';
-						self.automata.push(Automaton::new(peek.x, peek.y, Automaton::char_to_dir(c).unwrap()));
+						self.automata.push(Automaton::new(peek, Automaton::char_to_dir(c).unwrap()));
 					} else {
 						self.cells[peek.y][peek.x] = c;
 					}
@@ -235,7 +235,7 @@ impl Kye {
 						spawn.push(Thread::new(peek));
 					} else if Automaton::is_automaton(c) {
 						self.cells[peek.y][peek.x] = ' ';
-						self.automata.push(Automaton::new(peek.x, peek.y, Automaton::char_to_dir(c).unwrap()));
+						self.automata.push(Automaton::new(peek, Automaton::char_to_dir(c).unwrap()));
 					} else {
 						self.cells[peek.y][peek.x] = c;
 					}
@@ -359,29 +359,6 @@ impl Kye {
 			}
 		}
 
-		fn thread_arrow(dir: Dir) -> char {
-			match dir {
-			Dir::N  => '↑',
-			Dir::NE => '↗',
-			Dir::E  => '→',
-			Dir::SE => '↘',
-			Dir::S  => '↓',
-			Dir::SW => '↙',
-			Dir::W  => '←',
-			Dir::NW => '↖',
-			}
-		}
-
-		fn automata_char(dir: Dir) -> char {
-			match dir {
-			Dir::N  => '^',
-			Dir::E  => '>',
-			Dir::S  => 'v',
-			Dir::W  => '<',
-			_ => panic!("unrecognised automata direction"),
-			}
-		}
-
 		for (y, x) in self.cells() {
 			let color = self.threads_at(x, y)
 				.map(|t| thread_color(t.state))
@@ -393,7 +370,7 @@ impl Kye {
 			if self.cells[y][x] != ' ' {
 				eprint!("{}", esc(self.cells[y][x]));
 			} else if let Some(automata) = self.automata_at(x, y).next() {
-				eprint!("{}", automata_char(automata.dir));
+				eprint!("{}", char::from(automata));
 			} else {
 				eprint!(" ");
 			}
@@ -413,7 +390,7 @@ impl Kye {
 					None => format!("\\x{{{:X}}}", *n),
 				}).collect();
 			let color = thread_color(thread.state);
-			let arrow = thread_arrow(thread.dir);
+			let arrow = char::from(thread.dir);
 
 			eprint!("{:2},{:2} {} ", thread.coord.x, thread.coord.y, arrow);
 			eprint!("\x1b[1;{}m", color);

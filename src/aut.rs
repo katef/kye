@@ -7,6 +7,18 @@ pub struct Automaton {
 	pub dir: Dir,
 }
 
+impl From<&Automaton> for char {
+	fn from(automaton: &Automaton) -> char {
+		match automaton.dir {
+		Dir::N => '^',
+		Dir::E => '>',
+		Dir::S => 'v',
+		Dir::W => '<',
+		_ => panic!("unrecognised automata direction"),
+		}
+	}
+}
+
 impl Automaton {
 	pub fn is_automaton(c: char) -> bool {
 		c == '^' || c == '>' || c == 'v' || c == '<'
@@ -26,8 +38,7 @@ impl Automaton {
 		}
 	}
 
-	pub fn new(x: usize, y: usize, dir: Dir) -> Automaton {
-		let coord = Coord::new(x, y);
+	pub fn new(coord: Coord, dir: Dir) -> Automaton {
 		Automaton { coord, dir }
 	}
 }

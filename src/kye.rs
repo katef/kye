@@ -391,26 +391,28 @@ impl Kye {
 			}
 		}
 
+        let mut out_string = String::from("");
+
 		for (y, x) in self.cells() {
 			let color = self.threads_at(x, y)
 				.map(|t| thread_color(t.state))
 				.max(); // TODO: .max() is a placeholder
 
 			if color != None {
-				eprint!("\x1b[1;{}m", color.unwrap());
+				out_string.push_str(&format!("\x1b[1;{}m", color.unwrap()));
 			}
 			if self.cells[y][x] != ' ' {
-				eprint!("{}", esc(self.cells[y][x]));
+				out_string.push_str(&format!("{}", esc(self.cells[y][x])));
 			} else if let Some(automata) = self.automata_at(x, y).next() {
-				eprint!("{}", char::from(automata));
+				out_string.push_str(&format!("{}", char::from(automata)));
 			} else {
-				eprint!(" ");
+				out_string.push_str(&format!(" "));
 			}
 			if color != None {
-				eprint!("\x1b[0m");
+				out_string.push_str(&format!("\x1b[0m"));
 			}
 			if x == self.width - 1 {
-				eprintln!();
+                out_string.push_str("\n");
 			}
 		}
 
@@ -424,13 +426,14 @@ impl Kye {
 			let color = thread_color(thread.state);
 			let arrow = char::from(thread.dir);
 
-			eprint!("{:2},{:2} {} ", thread.coord.x, thread.coord.y, arrow);
-			eprint!("\x1b[1;{}m", color);
-			eprint!("{}", i);
-			eprint!("\x1b[0m");
-			eprintln!(": {}\x1b[0K", s);
+			out_string.push_str(&format!("{:2},{:2} {} ", thread.coord.x, thread.coord.y, arrow));
+			out_string.push_str(&format!("\x1b[1;{}m", color));
+			out_string.push_str(&format!("{}", i));
+			out_string.push_str(&format!("\x1b[0m"));
+			out_string.push_str(&format!(": {}\x1b[0K\n", s));
 		}
-		eprintln!("\x1b[J");
+		out_string.push_str(&format!("\x1b[J\n"));
+        eprint!("{}", out_string);
 	}
 }
 

@@ -391,7 +391,7 @@ impl Kye {
 			}
 		}
 
-        let mut out_string = String::from("");
+		let mut out_string = String::from("");
 
 		for (y, x) in self.cells() {
 			let color = self.threads_at(x, y)
@@ -412,10 +412,11 @@ impl Kye {
 				out_string.push_str(&format!("\x1b[0m"));
 			}
 			if x == self.width - 1 {
-                out_string.push_str("\n");
+				out_string.push_str("\n");
 			}
 		}
 
+/*
 		for (i, thread) in self.threads.iter().enumerate() {
 			let s: String = thread.stack.iter()
 				.map(|n| match char::from_u32(*n) {
@@ -433,7 +434,8 @@ impl Kye {
 			out_string.push_str(&format!(": {}\x1b[0K\n", s));
 		}
 		out_string.push_str(&format!("\x1b[J\n"));
-        eprint!("{}", out_string);
+	*/
+		eprint!("{}", out_string);
 	}
 }
 

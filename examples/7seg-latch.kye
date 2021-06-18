@@ -1,0 +1,23 @@
+
+                                  /   \     @
+                                     3Bg  6g ;        ;XXXX@
+                          rom         2/   @M
+                                     3Bg  6g ;     ;2        @
+                       6666666666 /   2/   @M       X        X
+                       zqzzqzzzzz a  3Bg  6g ;      @       ;8
+                       zqqqzzzqzz f   2/   @M
+                       zzzzzqqzzz b  3Bg  6g ;        ;XXXX@
+                       qqzzzzzqzz g   2/   @M
+                       zqzqqqzqzq e  3Bg  6g ;     ;2        @
+                       zzqzzzzzzz c   2/   @M       X        X
+        input          zqzzqzzqzz d  3Bg  6g ;      @       ;8
+   $$$$  "\4          j//////////     2/   @M
+                       0123456789    3Bg  6g ;        ;XXXX@
+                                      @/   @M
+                          shift register     latching clocks
+
+                                  $'7777777'8 enable
+                 $#|>#            |'@@@@@@@'/ disable
+
+
+

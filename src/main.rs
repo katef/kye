@@ -1,4 +1,4 @@
-use std::io;
+use std::io::{self, BufReader, BufRead};
 use std::fs::File;
 use std::path::PathBuf;
 use std::time;
@@ -21,9 +21,8 @@ fn parse_duration(src: &str) -> Result<time::Duration, ParseIntError> {
 #[derive(Clap, Debug)]
 #[clap(name = "kye")]
 struct Opts {
-	// TODO: default_value="-"?
 	#[clap(parse(from_os_str))]
-	input_file: PathBuf,
+	input_file: Option<PathBuf>,
 
 	#[clap(short, long, about = "Hide debug output")]
 	quiet: bool,
@@ -40,8 +39,10 @@ struct Opts {
 fn main() -> io::Result<()> {
 	let opts: Opts = Opts::parse();
 
-	let f = File::open(opts.input_file)?;
-	let buf = io::BufReader::new(f);
+	let buf: Box<dyn BufRead> = match opts.input_file {
+	Some(input_file) => Box::new(BufReader::new(File::open(input_file)?)),
+	None => Box::new(BufReader::new(std::io::stdin()))
+	};
 
 	let mut kye = Kye::read(buf);
 

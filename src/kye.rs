@@ -374,7 +374,7 @@ impl Kye {
 		self.automata.iter().filter(move |a| (a.coord.x, a.coord.y) == (x, y))
 	}
 
-	pub fn print(&self) {
+	pub fn print(&self, show_threads: bool) {
 		fn esc(c: char) -> char {
 			if (c as u32) < 32 || (c as u32) > 127 {
 				'.'
@@ -416,25 +416,27 @@ impl Kye {
 			}
 		}
 
-/*
-		for (i, thread) in self.threads.iter().enumerate() {
-			let s: String = thread.stack.iter()
-				.map(|n| match char::from_u32(*n) {
-					Some(_c) if *n < 32 => format!("\\x{{{:X}}}", *n),
-					Some(c) => String::from(c),
-					None => format!("\\x{{{:X}}}", *n),
-				}).collect();
-			let color = thread_color(thread.state);
-			let arrow = char::from(thread.dir);
+		if show_threads {
+			for (i, thread) in self.threads.iter().enumerate() {
+				let s: String = thread.stack.iter()
+					.map(|n| match char::from_u32(*n) {
+						Some(_c) if *n < 32 => format!("\\x{{{:X}}}", *n),
+						Some(c) => String::from(c),
+						None => format!("\\x{{{:X}}}", *n),
+					}).collect();
+				let color = thread_color(thread.state);
+				let arrow = char::from(thread.dir);
 
-			out_string.push_str(&format!("{:2},{:2} {} ", thread.coord.x, thread.coord.y, arrow));
-			out_string.push_str(&format!("\x1b[1;{}m", color));
-			out_string.push_str(&format!("{}", i));
-			out_string.push_str(&format!("\x1b[0m"));
-			out_string.push_str(&format!(": {}\x1b[0K\n", s));
+				out_string.push_str(&format!("{:2},{:2} {} ", thread.coord.x, thread.coord.y, arrow));
+				out_string.push_str(&format!("\x1b[1;{}m", color));
+				out_string.push_str(&format!("{}", i));
+				out_string.push_str(&format!("\x1b[0m"));
+				out_string.push_str(&format!(": {}\x1b[0K\n", s));
+			}
+
+			out_string.push_str(&format!("\x1b[J\n"));
 		}
-		out_string.push_str(&format!("\x1b[J\n"));
-	*/
+
 		eprint!("{}", out_string);
 	}
 }

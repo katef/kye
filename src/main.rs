@@ -1,7 +1,9 @@
 use std::io;
-use std::env;
 use std::fs::File;
+use std::path::PathBuf;
 use std::time;
+use std::num::ParseIntError;
+use clap::Clap;
 
 use crate::kye::Kye;
 
@@ -11,24 +13,54 @@ mod dir;
 mod kye;
 mod thread;
 
-fn main() -> io::Result<()> {
-	let args: Vec<String> = env::args().collect();
+fn parse_duration(src: &str) -> Result<time::Duration, ParseIntError> {
+	let ms = src.parse::<u64>()?;
+	Ok(time::Duration::from_millis(ms))
+}
 
-	let f = File::open(&args[1])?;
+#[derive(Clap, Debug)]
+#[clap(name = "kye")]
+struct Opts {
+	// TODO: default_value="-"?
+	#[clap(parse(from_os_str))]
+	input_file: PathBuf,
+
+	#[clap(short, long, about = "Hide debug output")]
+	quiet: bool,
+
+	#[clap(short, long, parse(try_from_str = parse_duration),
+		default_value = "100",
+		about = "Tick delay for debug output (ms)")]
+	delay: time::Duration,
+
+	#[clap(short, long, about = "Show threads in debug output")]
+	threads: bool,
+}
+
+fn main() -> io::Result<()> {
+	let opts: Opts = Opts::parse();
+
+	let f = File::open(opts.input_file)?;
 	let buf = io::BufReader::new(f);
 
 	let mut kye = Kye::read(buf);
 
-	eprint!("\x1b[?25l\x1b[2J");
+	if !opts.quiet {
+		eprint!("\x1b[?25l\x1b[2J");
+	}
 	loop {
 		eprint!("\x1b[0;0H");
-		kye.print();
+		if !opts.quiet {
+			kye.print(opts.threads);
+		}
 
 		if kye.threads.is_empty() {
 			break;
 		}
 
-		std::thread::sleep(time::Duration::from_millis(200));
+		if !opts.quiet {
+			std::thread::sleep(opts.delay);
+		}
 		kye.tick();
 	}
 

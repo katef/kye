@@ -1,0 +1,70 @@
+INIT TAPE HERE:
+$|/ zzz[zz[z[zzzz[z[z[z[zz[z[z[zzz[z[zz[zzz[z[z[zzz[zz[z[z[z[zz[z[zzzz[zz[z[z[z[zz[zzz[zzzz
+
+    This top portion spawns the initial thread that will become the right half of the tape and reads the input
+    then it drops all the way to the bottommost lines where it will sparn the other two needed threads and start the computation
+
+          /                                                                                                                    \
+            /                                                      \ /                                                      \
+             /                                                      \ /                                                      \
+                                                                                                                    Q
+                                                                  #                                                        #                                                        #
+            /  t\ '1  # 'zzz'  #;'z'11#################-######'   \  /  t\ '1  # 'zz[z'  #;'zz[z'#########-##############' \  /  t\ '1  # 'zz[z'  #;'zz[z'###########-############' \
+             M                                                    #   M                                                    #   M                                                    #
+                \ '1  # 'zz[z'  #;11'z'######################-#'  \      \ '1  # 'zz[z'  #;11'z'##############-#########'  \      \ '1  # 'zzz'  #;'z'11#####################-##'   \
+                                                                  #                                                        #                                                        #
+            /  t\ '1  # 'zzz'  #;'z'11################-#######'   \  /  t\ '1  # 'zz[z'  #;'zz[z'########-###############' \  /  t\ '1  # 'zz[z'  #;11'z'###-####################'  \
+             M                                                    #   M                                                    #   M                                                    #
+                \ '1  # 'zzz'  #;'z'11##################-#####'   \      \ '1  # 'zz[z'  #;11'z'#######-################'  \      \ '1  # 'zz[z'  #;'zz[z'###-####################' \
+                                                                  #                                                        #                                                        #
+            /  t\ '1  # 'zzz'  #;'z'11#################-######'   \  /  t\ '1  # 'zzz'  #;'z'11#########-##############'   \  /  t\ '1  # 'zzz'  #;111##############-#########'     \
+             M                                                    #   M                                                    #   M                                                    #
+                \ '1  # 'zzz'  #;111#################-######'     \      \ '1  # 'zzz'  #;111#############-##########'     \      \ '1  # 'zz[z'  #;11'z'###-####################'  \
+                                                                  #                                                        #                                                        #
+            /  t\ '1  # 'zz[z'  #;11'z'#######################-'  \  /  t\ '1  # 'zz[z'  #;'zz[z'##############-#########' \  /  t\ '1  # 'zz[z'  #;'zz[z'##-#####################' \
+             M                                                    #   M                                                    #   M                                                    #
+                \ '1  # 'zzz'  #;'z'11##################-#####'   \      \ '1  # 'zz[z'  #;11'z'-#######################'  \      \ '1  # 'zz[z'  #;11'z'#-######################'  \
+                                                                  #                                                        #                                                        #
+            /  t\ '1  # 'zzz'  #;111############-###########'     \  /  t\ '1  # 'zz[z'  #;'zz[z'#####-##################' \  /  t\ '1  # 'zz[z'  #;11'z'######-#################'  \
+             M                                                    #   M                                                    #   M                                                    #
+                \ '1  # 'zzz'  #;'z'11###############-########'   \      \ '1  # 'zzz'  #;111##########-#############'     \      \ '1  # 'zz[z'  #;'zz[z'######-#################' \
+                                                                  #                                                        #                                                        #
+            /  t\ '1  # 'zzz'  #;'z'11####################-###'   \  /  t\ '1  # 'zzz'  #;'z'11####################-###'   \  /  t\ '1  # 'zzz'  #;111#####################-##'     \
+             M                                                    #   M                                                    #   M                                                    #
+                \ '1  # 'zzz'  #;'z'11######################-#'   \      \ '1  # 'zzz'  #;111########################'     \      \ '1  # 'zz[z'  #;11'z'######-#################'  \
+                                                                  #                                                        #                                                        #
+            /  t\ '1  # 'zz[z'  #;11'z'#######################-'  \  /  t\ '1  # 'zzz'  #;111####################-###'     \  /  t\ '1  # 'zz[z'  #;'zz[z'#####-##################' \
+             M                                                    #   M                                                    #   M                                                    #
+                \ '1  # 'zzz'  #;111#####################-##'     \      \ '1  # 'zz[z'  #;'zz[z'###########-############' \      \ '1  # 'zz[z'  #;11'z'####-###################'  \
+                                                                  #                                                        #                                                        #
+            /  t\ '1  # 'zz[z'  #;'zz[z'###################-####' \  /  t\ '1  # 'zz[z'  #;'zz[z'#####-##################' \  /  t\ '1  # 'zz[z'  #;'zz[z'########-###############' \
+             M                                                    #   M                                                    #   M                                                    #
+                \ '1  # 'zz[z'  #;11'z'######################-#'  \      \ '1  # 'zzz'  #;111####################-###'     \      \ '1  # 'zz[z'  #;11'z'###-####################'  \
+                                                                   \ /                                                      \ / 
+                                                                    \ /                                                      \ /
+             \                                                    /#                                                       /#                                                       /
+
+          #                                                         the first half of each line determines what to write and direction to step to
+          /       \                                                 then follows a squence of #'s and a - to encode the new state
+                                                                    eg '1  # 'zz[z means it steps right, '  #;11'z that it writes a 1 and
+            \                               \                       '######################-#' that state 2 will be the next state
+          #
+          /                            \
+          t                            
+          \                    \
+          t                    t             
+  ;       \     \              \     \       
+/00000M  M/#     \   /00000M  M/#     \                 these two identical portions house the two threads that form the tape
+    $6 2    \ ;\          6 2    \ ;\                   each thread is trapped in its 6-2-4-8 loop and its stack represents one half of the tape
+\     M  Mt\  \      \     M  Mt\  \                    if the third thread wants to access the tape it goes one thread and drops a # into the loop
+     8 4   '   '          8 4   '   '                   this causes the tape thread to escape its loop and follow along the outer path where it will
+            m   m                m   m                  either read a symbol the control thread dropped earlier or write one that then will be read
+           '   '                '   '                   afterwards the tape thread goes back into its loop and the control thread jumps upwards
+       \    /# /\/          \    /# /\/                 to the big table of state information where it will then find the line corresponding to the
+              \                   #\   /                current state and read symbol, read the control info there, and then set up the table so it
+           \                   #\           /           will go to the new state's line next time. then it repeats the process by dropping down to
+  ;                                                     tape again
+  \'#'m                   /
+    $6 2'1  # 'zz[/
+     8 4
+
